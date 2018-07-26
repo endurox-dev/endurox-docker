@@ -3,7 +3,7 @@
 # Load env
 source /app1dir/conf/setapp1
 
-# SIGTERM-handler this funciton will be executed when the container receives the SIGTERM signal (when stopping)
+# SIGTERM-handler for graceful shutdown 
 term_handler(){
    echo "***Stopping"
    xadmin stop -y
@@ -19,8 +19,11 @@ echo "***Starting"
 #
 xadmin start -y
 
+# put the logging in background, so that bash cn wait for signal
+tail -f $NDRX_APPHOME/log/ndrxd.log &
+
 #
-# keep terminal hanging..
+# keep terminal hanging.. (needs for signal waiting)
 #
 while [[ 1 == 1 ]]; do
 	sleep 1
