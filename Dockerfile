@@ -18,6 +18,8 @@ RUN \
 #ADD root/.gitconfig /root/.gitconfig
 #ADD root/.scripts /root/.scripts
 
+COPY entrypoint.sh /
+
 # Set environment variables.
 ENV HOME /root
 
@@ -47,9 +49,10 @@ WORKDIR /app1dir
 RUN xadmin provision -d -vqprefix=app1 -vaddubf=bank.fd
 
 # Load environment file
-RUN /bin/bash -c "source /app1dir/conf/setapp1 && xadmin start -y"
+#RUN /bin/bash -c "source /app1dir/conf/setapp1 && xadmin start -y"
 
 # Define default command.
-CMD ["/bin/bash source /app1dir/conf/setapp1 && xadmin"]
+#CMD ["/bin/bash source /app1dir/conf/setapp1 && xadmin"]
 
+ENTRYPOINT ["/entrypoint.sh"]
 

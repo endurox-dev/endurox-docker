@@ -120,15 +120,8 @@
 		<server name="banksv">
 			<min>1</min>
 			<max>1</max>
-			<srvid>150</srvid>
+			<srvid>1000</srvid>
 			<sysopt>-e ${NDRX_APPHOME}/log/banksv.log -r</sysopt>
-		</server>
-		<server name="tmqueue">
-			<min>1</min>
-			<max>1</max>
-			<srvid>60</srvid>
-			<cctag>RM1TMQ</cctag>
-			<sysopt>-e ${NDRX_APPHOME}/log/tmqueue-rm1.log -r -- -m SAMPLESPACE -s1</sysopt>
 		</server>
 		<server name="cpmsrv">
 			<min>1</min>
