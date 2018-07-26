@@ -6,9 +6,9 @@ Docker file example for Enduro/X App Server
 
 This is sample docker project for deploying Enduro/X application in Docker
 container. Enduro/X is full supported by Docker and all system shared resources
-like System V IPC shared semaphores and Posix Queueus and Shared memory are
+like System V IPC shared semaphores and Posix Queues and Shared memory are
 fully name spaced away from base operating system. Thus it is effective way
-to perform lighweight isolation of your software from OS.
+to perform lightweight isolation of your software from OS.
 
 This project is continuation for the "Getting Started Tutorial" user guide,
 where the programmed "banksv" binary is deployed in Docker.
@@ -23,7 +23,7 @@ system, but should work similar way on all other Unix like OSes supporting docke
 
 ## Prepare Docker
 
-Install and enable docker for automatica startup.
+Install and enable docker for automatic startup.
 
 ```
 $ sudo apt install docker.io
