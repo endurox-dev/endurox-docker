@@ -1,5 +1,9 @@
 # endurox-docker
-Docker file example for Enduro/X App Server
+Docker file example for Enduro/X App Server. This project holds different
+configuration of Dockerfile for different Enduro/X use cases. Currently supported
+use cases are following:
+
+* Enduro/X Core container
 
 
 # Introduction
@@ -9,12 +13,6 @@ container. Enduro/X is full supported by Docker and all system shared resources
 like System V IPC shared semaphores and Posix Queues and Shared memory are
 fully name spaced away from base operating system. Thus it is effective way
 to perform lightweight isolation of your software from OS.
-
-This project is continuation for the "Getting Started Tutorial" user guide,
-where the programmed "banksv" binary is deployed in Docker.
-
-Enduro/X is configured by "provision" script and it uses common-configuration
-style configuration settings (in ini file).
 
 # Actions to take
 
@@ -31,6 +29,15 @@ $ sudo systemctl enable docker
 $ sudo systemctl start docker
 ```
 
+# Enduro/X Core container
+
+This project is continuation for the "Getting Started Tutorial" user guide,
+where the programmed "banksv" binary is deployed in Docker.
+
+Enduro/X is configured by "provision" script and it uses common-configuration
+style configuration settings (in ini file).
+
+
 ## Prepare base Dockerfile
 
 Clone the sample project.
@@ -38,9 +45,6 @@ Clone the sample project.
 ```
 $ git clone https://github.com/endurox-dev/endurox-docker
 ```
-
-The main entry point for the execution is *entrypoint.sh*.
-
 
 ## Prepare binaries
 
@@ -50,8 +54,7 @@ where the docker "build" command will grab it and encapsulate in the container.
 
 
 ```
-$ cd endurox-docker/bin
-$ cp /opt/app1/src/banksv .
+$ cp /opt/app1/src/banksv/banksv endurox-docker/endurox-core/bin
 ```
 
 ## Build the container
