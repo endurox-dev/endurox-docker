@@ -91,7 +91,11 @@ $ sudo docker rmi bankapp
 This step also includes definition of IPC and security limits:
 
 ```
-$ sudo docker create --name bankapp-inst -it --sysctl fs.mqueue.msg_max=10000 --sysctl fs.mqueue.msgsize_max=1049600  --sysctl fs.mqueue.queues_max=10000 --ulimit msgqueue=-1  bankapp 
+$ sudo docker create --name bankapp-inst -it \
+  --sysctl fs.mqueue.msg_max=10000 \
+  --sysctl fs.mqueue.msgsize_max=1049600 \
+  --sysctl fs.mqueue.queues_max=10000 \
+  --ulimit msgqueue=-1  bankapp 
 ```
 
 ### Additional commands for maintenance:
