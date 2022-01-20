@@ -162,7 +162,7 @@ seconds.
 $ sudo docker stop -t 20 bankapp-inst
 ```
 
-# Orchestrating docker containers as XATMI servers
+# Orchestrating Docker containers as XATMI servers
 
 Is is possible to build an application where Enduro/X manages several docker
 cotnainers. Each container would run single XATMI server. Benefit from this
