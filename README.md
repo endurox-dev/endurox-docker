@@ -249,7 +249,7 @@ following:
 exbenchsv $NDRX_SVCLOPT
 
 ```
-this starts the final binary with command line options routed from host XATMI process the container.
+this starts the final binary with command line options routed from Enduro/X host.
   
 ## Ensuring Docker permissions for host user
   
