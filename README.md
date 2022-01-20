@@ -162,8 +162,138 @@ seconds.
 $ sudo docker stop -t 20 bankapp-inst
 ```
 
-# Conclusions
+# Orchestrating docker containers as XATMI servers
 
+Is is possible to build an application where Enduro/X manages several docker
+cotnainers. Each container would run single XATMI server. Benefit from this
+setup is that several components may use different libraries, but still
+use the XATMI IPC (with load balacing, etc) for communications with core
+application and other contains. Developers do not have to worry about networking, 
+port mapping, etc, all is done by Enduro/X (shared memory,and shared IPC queues,
+shared config folder).
+
+Key for this setup is to use Docker Host IPC and PID namespaces, the config 
+folder of the Enduro/X application shall be mapped to the container, 
+and log folder too (if required).
+
+## Preparing the host instance
+
+The *ndrxconfig.xml* looks more or less as usual for XATMI server:
+
+```
+<!-- 
+bankapp is Docker image name we want to boot. Also it is logical name
+of XATMI server in Enduro/X application.
+
+exdocker is actual script which would start the Docker instance.
+
+-->
+  <server name="bankapp">	 
+    <cmdline>exdocker</cmdline>
+    <srvid>1800</srvid>
+    <min>10</min>
+    <max>10</max>
+    <sysopt>-e ${NDRX_APPHOME}/log/exbenchsv.${NDRX_SVSRVID}.log</sysopt>
+    <appopt>-N5</appopt>
+  </server>
+
+```
+
+This basically starts *exdocker* script which would in turn start the interactive
+(it waits for the termination) docker instance (say $NDRX_APPHOME/bin/exdocker).
+This docker runner routes key environment variables, sets the ipc/pid sharing settings,
+mounts the conf and log folders with the host, configures user permissions.
+
+```
+#!/bin/bash
+
+# $NDRX_SVSRVID -> is loaded with current <srvid>
+# $NDRX_SVPROCNAME -> is loaded with current server name (e.g. <server name="XXXXX">,
+#  this serves also as image name.
+
+# The Enduro/X instance name would be extracted from Q prefix. So that we can
+# run several host E/X application which can manage containers.
+exinstance="${NDRX_QPREFIX:1}"
+
+# Remove any existing instance
+docker stop ${exinstance}-${NDRX_SVPROCNAME}-${NDRX_SVSRVID} 2>/dev/null
+docker rm ${exinstance}-${NDRX_SVPROCNAME}-${NDRX_SVSRVID} 2>/dev/null
+
+# start new instance and way till it will exit.
+docker run --name ${exinstance}-${NDRX_SVPROCNAME}-${NDRX_SVSRVID} \
+  -i --ipc=host --pid=host -u $(id -u ${USER}):$(id -g ${USER}) \
+  --ulimit msgqueue=-1 -a stdin -a stdout \
+  -v $NDRX_CCONFIG:$NDRX_CCONFIG \
+  -v $NDRX_APPHOME/log:$NDRX_APPHOME/log \
+  -e NDRX_APPHOME=$NDRX_APPHOME \
+  -e NDRX_CCONFIG=$NDRX_CCONFIG \
+  -e NDRX_SVPROCNAME="$NDRX_SVPROCNAME" \
+  -e NDRX_SVCLOPT="$NDRX_SVCLOPT" \
+  -e NDRX_SVPPID="$NDRX_SVPPID" \
+  -e NDRX_SVSRVID="$NDRX_SVSRVID" \
+    ${NDRX_SVPROCNAME} < /dev/null
+```
+
+So this will ensure that image "bankapp" can be started in several copies, marked by ${NDRX_SVSRVID}
+which corrsponds to <srvid> value. The final container name is composed as ${NDRX_QPREFIX}-${NDRX_SVPROCNAME}-${NDRX_SVSRVID},
+where from NDRX_QPREFIX leading "/" is removed.
+
+## Preparing container
+  
+The *Dockerfile* shall install matching Enduro/X version, and *entrypoint.sh* could look like
+following:
+  
+```
+#!/bin/bash
+
+exbenchsv $NDRX_SVCLOPT
+
+```
+this starts the final binary with command line options routed from host XATMI process the container.
+  
+## Ensuring Docker permissions for host user
+  
+```
+sudo groupadd docker
+sudo usermod -aG docker $USER
+newgrp docker
+```
+
+## Managing the containers
+
+The process/Container management is as usual:
+  
+```
+$ xadmin start -i 1800
+$ xadmin start -i 1801
+```
+  
+That would boot the instance:
+  
+```  
+$ docker ps
+CONTAINER ID   IMAGE                             COMMAND                  CREATED          STATUS          PORTS                                                                                                                             NAMES
+e2555d7d26d2   bankapp                           "/entrypoint.sh"         3 seconds ago    Up 2 seconds                                                                                                                                      test1-bankapp-1801
+2696ad9340f1   bankapp                           "/entrypoint.sh"         18 seconds ago   Up 17 seconds                                                                                                                                     test1-bankapp-1802
+
+$ xadmin psc
+...  
+Nd Service Name Routine Name Prog Name SRVID #SUCC #FAIL      MAX     LAST STAT
+-- ------------ ------------ --------- ----- ----- ----- -------- -------- -----
+ 1 EXBENCH000   EXBENCHSV    bankapp    1800     0     0      0ms      0ms AVAIL
+ 1 EXBENCH001   EXBENCHSV    bankapp    1801     0     0      0ms      0ms AVAIL
+```
+
+To stop the instances, usual stop will work:
+  
+```
+$ xadmin stop -i 1800
+$ xadmin stop -i 1801
+```
+
+  
+# Conclusions
+  
 Currently very basic setup for Enduro/X is given here, but user at least have a
 point to start on. The configuration is generated by *xadmin provision* too,
 which uses a lot defaults, user can override some others. Also note that
@@ -173,4 +303,8 @@ version of ndrxconfig.xml for the *banksv* definition.
 
 Also it is up to user to have some log rotate tool (in copy + truncate mode) so
 that at some day container disk space does not overfill.
+  
+From the last chapter it could be seen that Enduro/X may be also used as
+an container orchestrator, which works thanks to Linux/Docker ability to share
+the IPC and PIDs with the host operating system.
 
